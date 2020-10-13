@@ -134,7 +134,7 @@
 						<artifactId>build-maven-plugin</artifactId>
 						<version>1.1.0</version>
 						<configuration>
-							<mainVersion>1.0</mainVersion>
+							<mainVersion>1.1</mainVersion>
 							<outputDirectory>bin</outputDirectory>
 						</configuration>
 					</plugin>
