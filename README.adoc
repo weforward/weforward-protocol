@@ -71,7 +71,7 @@ WF-Content-Sign：POST内容体的SHA256签名的base64字串
 	c)空内容体也签名，签名值固定为：;
 	d)Base64.encode(post_sign)，得到最终的base64字串
 
-WF-Tag：表示处理当前请求的微服务实例标识，下次请求带上此标识，浩宁云将优先使用此标识对应的实例
+WF-Tag：表示处理当前请求的微服务实例标识，下次请求带上此标识，网关将优先使用此标识对应的实例
 
 WF-Channel：信道类型。取值：rpc、stream、notify
 * rpc：远程过程调用。
@@ -82,7 +82,7 @@ WF-Secure：标识通信链路是否安全，取值：on/off。Weforward保留�
 
 Authorization：验证类型。取值：WF-None、WF-SHA2、WF-AES。
 
-* WF-None：不验证。格式：Authorization: HY-None
+* WF-None：不验证。格式：Authorization: WF-None
 * WF-SHA2：基于SHA2-256的签名验证。格式：Authorization: WF-SHA2+空格+access_id:sign
 
 	sign生成过程：
@@ -95,11 +95,11 @@ Authorization：验证类型。取值：WF-None、WF-SHA2、WF-AES。
 	service_name = test
 	access_id = H-123456-12345678
 	access_key = u9Qa6Ggo9s6mWVs58hr3ZAIKUWzuV3u+gysmCbLeYWs=
-	HY-Noise = a34f2b5e9077dd05
+	WF-Noise = a34f2b5e9077dd05
 	post内容体 = {"test":"abc"}
-	HY-Content-Sign = o08rXpB33QV3Qt4uoZnHMS30xSp1mXC88IzsrOEp+ck=
-	HY-Tag = 无
-	HY-Channel = 无
+	WF-Content-Sign = o08rXpB33QV3Qt4uoZnHMS30xSp1mXC88IzsrOEp+ck=
+	WF-Tag = 无
+	WF-Channel = 无
 	字串拼接：
 	testH-123456-12345678u9Qa6Ggo9s6mWVs58hr3ZAIKUWzuV3u+gysmCbLeYWs=a34f2b5e9077dd05o08rXpB33QV3Qt4uoZnHMS30xSp1mXC88IzsrOEp+ck=
 	Sha256签名并按base64编码：
