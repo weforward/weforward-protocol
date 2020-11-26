@@ -11,6 +11,7 @@
 package cn.weforward.protocol.support.datatype;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
@@ -53,76 +54,64 @@ public class SimpleDtList extends AbstractDtList implements DtList, Iterable<DtB
 		return new SimpleDtList(new ArrayList<>(list));
 	}
 
-	public static SimpleDtList stringOf(List<String> list) {
-		if (ListUtil.isEmpty(list)) {
-			return EMPTY;
-		}
-		SimpleDtList dtList = new SimpleDtList(list.size());
-		for (String i : list) {
-			dtList.add(i);
-		}
-		return dtList;
-	}
-
 	public static SimpleDtList stringOf(Iterable<String> it) {
-		if (null == it) {
+		int size = getSize(it);
+		if (0 == size) {
 			return EMPTY;
 		}
 		Iterator<String> iterator = it.iterator();
-		if (!iterator.hasNext()) {
-			return EMPTY;
-		}
-		SimpleDtList dtList = new SimpleDtList();
+		SimpleDtList dtList = new SimpleDtList(size);
 		while (iterator.hasNext()) {
 			dtList.add(iterator.next());
 		}
 		return dtList;
 	}
 
-	public static SimpleDtList dateOf(List<Date> list) {
-		if (ListUtil.isEmpty(list)) {
-			return EMPTY;
+	static int getSize(Iterable<?> it) {
+		if (it instanceof Collection) {
+			return ((Collection<?>) it).size();
 		}
-		SimpleDtList dtList = new SimpleDtList(list.size());
-		for (Date i : list) {
-			dtList.add(i);
+		if (!it.iterator().hasNext()) {
+			return 0;
 		}
-		return dtList;
+		return 10;
 	}
 
-	public static SimpleDtList numberOf(List<? extends Number> list) {
-		if (ListUtil.isEmpty(list)) {
+	public static SimpleDtList dateOf(Iterable<Date> it) {
+		int size = getSize(it);
+		if (0 == size) {
 			return EMPTY;
 		}
-		SimpleDtList dtList = new SimpleDtList(list.size());
-		for (Number i : list) {
-			dtList.add(i);
-		}
-		return dtList;
-	}
-
-	public static SimpleDtList numberOf(Iterable<Number> it) {
-		if (null == it) {
-			return EMPTY;
-		}
-		Iterator<Number> iterator = it.iterator();
-		if (!iterator.hasNext()) {
-			return EMPTY;
-		}
-		SimpleDtList dtList = new SimpleDtList();
+		Iterator<Date> iterator = it.iterator();
+		SimpleDtList dtList = new SimpleDtList(size);
 		while (iterator.hasNext()) {
 			dtList.add(iterator.next());
 		}
 		return dtList;
 	}
 
-	public static SimpleDtList booleanOf(List<Boolean> list) {
-		if (ListUtil.isEmpty(list)) {
+	public static SimpleDtList numberOf(Iterable<? extends Number> it) {
+		int size = getSize(it);
+		if (0 == size) {
 			return EMPTY;
 		}
-		SimpleDtList dtList = new SimpleDtList(list.size());
-		for (Boolean i : list) {
-			dtList.add(i);
+		Iterator<? extends Number> iterator = it.iterator();
+		SimpleDtList dtList = new SimpleDtList(size);
+		while (iterator.hasNext()) {
+			dtList.add(iterator.next());
+		}
+		return dtList;
+	}
+
+	public static SimpleDtList booleanOf(Iterable<Boolean> it) {
+		int size = getSize(it);
+		if (0 == size) {
+			return EMPTY;
+		}
+		Iterator<Boolean> iterator = it.iterator();
+		SimpleDtList dtList = new SimpleDtList(size);
+		while (iterator.hasNext()) {
+			dtList.add(iterator.next());
 		}
 		return dtList;
 	}
@@ -137,9 +126,12 @@ public class SimpleDtList extends AbstractDtList implements DtList, Iterable<DtB
 	 * 转为DtList
 	 * 
 	 * @param <E>
-	 * @param list   集合
-	 * @param size   集合个数，-1表示未知
-	 * @param mapper 集合元素的映射器
+	 * @param list
+	 *            集合
+	 * @param size
+	 *            集合个数，-1表示未知
+	 * @param mapper
+	 *            集合元素的映射器
 	 * @return 转换后的DtList
 	 */
 	public static <E> DtList toDtList(Iterable<? extends E> list, int size, ObjectMapper<E> mapper) {

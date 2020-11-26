@@ -10,8 +10,12 @@
  */
 package cn.weforward.protocol.client.ext;
 
-import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
 
+import cn.weforward.common.KvPair;
+import cn.weforward.protocol.RequestConstants;
 import cn.weforward.protocol.datatype.DtBase;
 import cn.weforward.protocol.datatype.DtObject;
 import cn.weforward.protocol.exception.ObjectMappingException;
@@ -36,11 +40,30 @@ public class RequestInvokeObject {// implements DtObject
 	/**
 	 * 构造
 	 * 
-	 * @param method 方法名
+	 * @param method
+	 *            方法名
 	 */
 	public RequestInvokeObject(String method) {
 		m_Invoke = new SimpleDtObject(false);
-		m_Invoke.put("method", method);
+		m_Invoke.put(RequestConstants.METHOD, method);
+	}
+
+	/**
+	 * 根据另一个RequestInvokeObject构造，复制其内容
+	 * 
+	 * @param method
+	 *            方法名
+	 */
+	public RequestInvokeObject(RequestInvokeObject other) {
+		m_Invoke = other.m_Invoke;
+		m_Mappers = other.m_Mappers;
+		if (null != other.m_Params) {
+			Enumeration<KvPair<String, DtBase>> dtObjAtts = other.m_Params.getAttributes();
+			while (dtObjAtts.hasMoreElements()) {
+				KvPair<String, DtBase> att = dtObjAtts.nextElement();
+				putParam(att.getKey(), att.getValue());
+			}
+		}
 	}
 
 	public RequestInvokeObject(String method, ObjectMapperSet mappers) {
@@ -89,6 +112,42 @@ public class RequestInvokeObject {// implements DtObject
 		getParams().put(name, value);
 	}
 
+	public void putParam(String name, long value) {
+		getParams().put(name, value);
+	}
+
+	public void putParam(String name, double value) {
+		getParams().put(name, value);
+	}
+
+	public void putParam(String name, Date value) {
+		getParams().put(name, value);
+	}
+
+	public void putParam(String name, boolean value) {
+		getParams().put(name, value);
+	}
+
+	public void putParamStringList(String name, Iterable<String> value) {
+		SimpleDtList list = SimpleDtList.stringOf(value);
+		getParams().put(name, list);
+	}
+
+	public void putParamDateList(String name, Iterable<Date> value) {
+		SimpleDtList list = SimpleDtList.dateOf(value);
+		getParams().put(name, list);
+	}
+
+	public void putParamNumberList(String name, Iterable<? extends Number> value) {
+		SimpleDtList list = SimpleDtList.numberOf(value);
+		getParams().put(name, list);
+	}
+
+	public void putParamBooleanList(String name, Iterable<Boolean> value) {
+		SimpleDtList list = SimpleDtList.booleanOf(value);
+		getParams().put(name, list);
+	}
+
 	public <E> void putParam(String name, E obj) {
 		DtBase dtObj = null;
 		if (null != obj) {
@@ -103,17 +162,28 @@ public class RequestInvokeObject {// implements DtObject
 	}
 
 	@SuppressWarnings("unchecked")
-	public <E> void putParam(String name, Collection<E> list) {
+	public <E> void putParam(String name, Iterable<E> it) {
+		if (null == it) {
+			getParams().put(name, (DtBase) null);
+			return;
+		}
+		Iterator<E> iterator = it.iterator();
+		if (!iterator.hasNext()) {
+			getParams().put(name, SimpleDtList.empty());
+			return;
+		}
 		SimpleDtList dtList = new SimpleDtList();
-		if (null != list && !list.isEmpty()) {
-			ObjectMapper<E> mapper = null;
-			for (E obj : list) {
+		ObjectMapper<E> mapper = null;
+		while (iterator.hasNext()) {
+			E obj = iterator.next();
+			if (null == mapper) {
+				mapper = getMapper((Class<E>) obj.getClass());
 				if (null == mapper) {
-					mapper = getMapper((Class<E>) obj.getClass());
+					throw new ObjectMappingException("不支持映射此对象：" + obj);
 				}
-				DtObject hyObj = mapper.toDtObject(obj);
-				dtList.addItem(hyObj);
 			}
+			DtObject hyObj = mapper.toDtObject(obj);
+			dtList.addItem(hyObj);
 		}
 		getParams().put(name, dtList);
 	}
@@ -125,6 +195,32 @@ public class RequestInvokeObject {// implements DtObject
 		for (RequestInvokeParam p : params) {
 			putParam(p.name, p.value);
 		}
+	}
+
+	/**
+	 * 将obj的所有属性做为参数
+	 * 
+	 * @param obj
+	 */
+	public void putParams(Object obj) {
+		if (null == obj) {
+			return;
+		}
+		@SuppressWarnings("unchecked")
+		ObjectMapper<Object> mapper = getMapper((Class<Object>) obj.getClass());
+		if (null == mapper) {
+			throw new ObjectMappingException("不支持映射此对象：" + obj);
+		}
+		DtObject dtObj = mapper.toDtObject(obj);
+		Enumeration<KvPair<String, DtBase>> dtObjAtts = dtObj.getAttributes();
+		while (dtObjAtts.hasMoreElements()) {
+			KvPair<String, DtBase> att = dtObjAtts.nextElement();
+			if (null == att.getValue()) {
+				continue;
+			}
+			putParam(att.getKey(), att.getValue());
+		}
+
 	}
 
 	public DtObject toDtObject() {

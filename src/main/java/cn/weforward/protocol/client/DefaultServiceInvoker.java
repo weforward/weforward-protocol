@@ -134,6 +134,6 @@ public class DefaultServiceInvoker extends AbstractServiceInvoker {
 
 	@Override
 	public String toString() {
-		return "{invokers:" + m_Invokers + "}";
+		return "{offset:" + m_InvokerOffset + " ,invokers:" + m_Invokers + "}";
 	}
 }

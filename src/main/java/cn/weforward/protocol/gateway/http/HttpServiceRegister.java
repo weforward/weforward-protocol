@@ -10,12 +10,15 @@
  */
 package cn.weforward.protocol.gateway.http;
 
+import cn.weforward.common.ResultPage;
 import cn.weforward.common.util.StringUtil;
 import cn.weforward.protocol.Response;
 import cn.weforward.protocol.Service;
 import cn.weforward.protocol.ServiceName;
 import cn.weforward.protocol.client.ServiceInvoker;
 import cn.weforward.protocol.client.ServiceInvokerFactory;
+import cn.weforward.protocol.client.ext.RemoteResultPage;
+import cn.weforward.protocol.client.ext.RequestInvokeParam;
 import cn.weforward.protocol.datatype.DtObject;
 import cn.weforward.protocol.ext.ObjectMapper;
 import cn.weforward.protocol.ext.ObjectMapperSet;
@@ -93,4 +96,10 @@ public class HttpServiceRegister implements ServiceRegister {
 		}
 	}
 
+	@Override
+	public ResultPage<String> listServiceName(String keyword) {
+		String method = "list_service_name";
+		RequestInvokeParam[] params = { RequestInvokeParam.valueOf("keyword", keyword) };
+		return new RemoteResultPage<>(m_Invoker, method, params);
+	}
 }

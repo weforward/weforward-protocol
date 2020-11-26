@@ -11,6 +11,7 @@
 package cn.weforward.protocol.client.execption;
 
 import cn.weforward.protocol.Response;
+import cn.weforward.protocol.ResponseConstants;
 import cn.weforward.protocol.datatype.DtNumber;
 import cn.weforward.protocol.datatype.DtObject;
 import cn.weforward.protocol.support.datatype.FriendlyObject;
@@ -23,12 +24,8 @@ import cn.weforward.protocol.support.datatype.FriendlyObject;
  * @author daibo
  *
  */
+@SuppressWarnings("serial")
 public class MicroserviceException extends RuntimeException {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 	/** 错误码 */
 	protected int m_Code;
 	/** 错误信息 */
@@ -43,11 +40,17 @@ public class MicroserviceException extends RuntimeException {
 	}
 
 	public MicroserviceException(FriendlyObject serviceResult) {
-		this(serviceResult.getInt("code"), serviceResult.getString("msg"));
+		this(serviceResult.getInt(ResponseConstants.CODE), serviceResult.getString(ResponseConstants.MSG));
 	}
 
 	public MicroserviceException(int code, String msg) {
 		super("微服务响应异常:" + code + "/" + msg);
+		m_Code = code;
+		m_Msg = msg;
+	}
+
+	public MicroserviceException(String exceptionMessage, int code, String msg) {
+		super(exceptionMessage);
 		m_Code = code;
 		m_Msg = msg;
 	}
@@ -88,7 +91,7 @@ public class MicroserviceException extends RuntimeException {
 	 * @return 成功返回true
 	 */
 	public static boolean isSuccess(FriendlyObject serviceResult) {
-		return serviceResult.getInt("code") == 0;
+		return serviceResult.getInt(ResponseConstants.CODE) == 0;
 	}
 
 	/***
@@ -98,7 +101,7 @@ public class MicroserviceException extends RuntimeException {
 	 * @return 成功返回true
 	 */
 	public static boolean isSuccess(DtObject serviceResult) {
-		DtNumber code = serviceResult.getNumber("code");
+		DtNumber code = serviceResult.getNumber(ResponseConstants.CODE);
 		if (null == code) {
 			return false;
 		}
@@ -122,7 +125,7 @@ public class MicroserviceException extends RuntimeException {
 	 * @throws MicroserviceException
 	 */
 	public static void checkException(FriendlyObject serviceResult) throws MicroserviceException {
-		if (serviceResult.getInt("code") != 0) {
+		if (serviceResult.getInt(ResponseConstants.CODE) != 0) {
 			throw new MicroserviceException(serviceResult);
 		}
 	}

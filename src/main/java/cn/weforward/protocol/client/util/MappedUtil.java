@@ -58,7 +58,7 @@ import cn.weforward.protocol.support.datatype.SimpleDtString;
  */
 public class MappedUtil {
 	/** 映射表 */
-	private static ConcurrentHashMap<String, JavaBeanMapper> MAPPER = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<Class<?>, JavaBeanMapper> MAPPER = new ConcurrentHashMap<>();
 
 	/**
 	 * 从参数中解析出对象
@@ -118,6 +118,12 @@ public class MappedUtil {
 		if (String.class.isAssignableFrom(clazz)) {
 			if (params instanceof DtString) {
 				return ((DtString) params).value();
+			} else {
+				throw new UnsupportedOperationException("不支持的类型转换:" + params + "=>" + clazz);
+			}
+		} else if (Short.class.isAssignableFrom(clazz) || short.class.isAssignableFrom(clazz)) {
+			if (params instanceof DtNumber) {
+				return (short) ((DtNumber) params).valueInt();
 			} else {
 				throw new UnsupportedOperationException("不支持的类型转换:" + params + "=>" + clazz);
 			}
@@ -218,11 +224,10 @@ public class MappedUtil {
 					}
 				}
 			}
-			String key = ClassUtil.getSimpleName(clazz);
-			JavaBeanMapper mapper = MAPPER.get(key);
+			JavaBeanMapper mapper = MAPPER.get(clazz);
 			if (null == mapper) {
 				mapper = new JavaBeanMapper(clazz);
-				JavaBeanMapper old = MAPPER.putIfAbsent(key, mapper);
+				JavaBeanMapper old = MAPPER.putIfAbsent(clazz, mapper);
 				if (null != old) {
 					mapper = old;
 				}
@@ -326,11 +331,10 @@ public class MappedUtil {
 				}
 			}
 			Class<?> clazz = val.getClass();
-			String key = clazz.getName();
-			JavaBeanMapper mapper = MAPPER.get(key);
+			JavaBeanMapper mapper = MAPPER.get(clazz);
 			if (null == mapper) {
 				mapper = new JavaBeanMapper(clazz);
-				JavaBeanMapper old = MAPPER.putIfAbsent(key, mapper);
+				JavaBeanMapper old = MAPPER.putIfAbsent(clazz, mapper);
 				if (null != old) {
 					mapper = old;
 				}

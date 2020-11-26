@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Properties;
 
 import cn.weforward.common.ResultPage;
+import cn.weforward.common.util.ResultPageHelper;
 import cn.weforward.common.util.StringUtil;
 import cn.weforward.protocol.Header;
 import cn.weforward.protocol.gateway.http.HttpKeeper;
@@ -77,7 +78,7 @@ public class TempKeeper {
 				if ("list".equals(arr[1])) {
 					tmp.listService();
 				} else if ("names".equals(arr[1])) {
-					tmp.listServiceName();
+					tmp.listServiceName(arr.length > 2 ? arr[2] : null);
 				}
 			} else if (cmd.startsWith("rt ")) {
 				String[] arr = cmd.split(" ");
@@ -148,19 +149,22 @@ public class TempKeeper {
 
 	public void listAccess(String kind, String group) {
 		ResultPage<AccessExt> rp = keeper.listAccess(kind, group);
+		if (0 == rp.getCount()) {
+			return;
+		}
 		int max = 1000;
 		int count = 0;
 		System.out.println("access list:");
-		rp.setPageSize(3);
-		for (int p = 1; rp.gotoPage(p); p++)
-			for (AccessExt i : rp) {
-				System.out.println(
-						i.getAccessId() + "," + i.getAccessKeyHex() + "," + i.getSummary() + "," + i.isValid());
-				if (count++ > max) {
-					System.out.println("too many item : " + rp.getCount());
-					return;
-				}
+		// rp.setPageSize(3);
+		// for (int p = 1; rp.gotoPage(p); p++)
+		// for (AccessExt i : rp) {
+		for (AccessExt i : ResultPageHelper.toForeach(rp)) {
+			System.out.println(i.getAccessId() + "," + i.getAccessKeyHex() + "," + i.getSummary() + "," + i.isValid());
+			if (count++ > max) {
+				System.out.println("too many item : " + rp.getCount());
+				return;
 			}
+		}
 	}
 
 	public void listAccessGroups(String kind) {
@@ -189,8 +193,8 @@ public class TempKeeper {
 
 	}
 
-	public void listServiceName() {
-		ResultPage<String> rp = keeper.listServiceName(null);
+	public void listServiceName(String keyword) {
+		ResultPage<String> rp = keeper.listServiceName(keyword);
 		rp.setPageSize(100);
 		rp.gotoPage(1);
 		System.out.println("service list:");

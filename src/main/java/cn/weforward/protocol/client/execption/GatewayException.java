@@ -20,20 +20,26 @@ import cn.weforward.protocol.Response;
  * @author daibo
  *
  */
+@SuppressWarnings("serial")
 public class GatewayException extends RuntimeException {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 
 	protected int m_ResponseCode;
 	protected String m_ResponseMsg;
 
 	public GatewayException(Response response) {
-		super("网关响应异常:" + response.getResponseCode() + "/" + response.getResponseMsg());
-		m_ResponseCode = response.getResponseCode();
-		m_ResponseMsg = response.getResponseMsg();
+		this(response.getResponseCode(), response.getResponseMsg());
+	}
+
+	public GatewayException(int code, String msg) {
+		super("网关响应异常:" + code + "/" + msg);
+		m_ResponseCode = code;
+		m_ResponseMsg = msg;
+	}
+
+	public GatewayException(String exceptionMessage, int code, String msg) {
+		super(exceptionMessage);
+		m_ResponseCode = code;
+		m_ResponseMsg = msg;
 	}
 
 	public int getResponseCode() {

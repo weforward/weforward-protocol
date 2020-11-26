@@ -11,8 +11,12 @@
 package cn.weforward.protocol.client.ext;
 
 import cn.weforward.common.util.AbstractResultPage;
+import cn.weforward.common.util.StringUtil;
+import cn.weforward.protocol.Request;
 import cn.weforward.protocol.Response;
 import cn.weforward.protocol.client.ServiceInvoker;
+import cn.weforward.protocol.client.execption.GatewayException;
+import cn.weforward.protocol.client.execption.MicroserviceException;
 import cn.weforward.protocol.datatype.DtObject;
 import cn.weforward.protocol.support.PageData;
 import cn.weforward.protocol.support.PageDataMapper;
@@ -26,9 +30,6 @@ import cn.weforward.protocol.support.PageDataMapper;
  */
 public class RemoteResultPage<E> extends AbstractResultPage<E> {
 
-	static final int DEFAULT_PAGE = 0;
-	static final int DEFAULT_PAGE_SIZE = 50;
-
 	/** 调用器 */
 	protected ServiceInvoker m_Invoker;
 	// /** 调用的方法 */
@@ -41,6 +42,8 @@ public class RemoteResultPage<E> extends AbstractResultPage<E> {
 	/** 分页数据映射器 */
 	protected PageDataMapper m_DataMapper;
 
+	protected String m_Tag;
+
 	/**
 	 * 构造。元素为基础类型
 	 * 
@@ -49,88 +52,74 @@ public class RemoteResultPage<E> extends AbstractResultPage<E> {
 	 * @param params
 	 */
 	public RemoteResultPage(ServiceInvoker invoker, String method, RequestInvokeParam... params) {
-		this(new PageDataMapper(), DEFAULT_PAGE, DEFAULT_PAGE_SIZE, invoker, method, params);
+		this(new PageDataMapper(), invoker, method, params);
 	}
 
 	/**
 	 * 构造。元素为基础类型
 	 * 
-	 * @param page
-	 * @param pageSize
 	 * @param invoker
-	 * @param method
-	 * @param params
+	 * @param invokeObj
 	 */
-	public RemoteResultPage(int page, int pageSize, ServiceInvoker invoker, String method,
-			RequestInvokeParam... params) {
-		this(new PageDataMapper(), page, pageSize, invoker, method, params);
+	public RemoteResultPage(ServiceInvoker invoker, RequestInvokeObject invokeObj) {
+		this(new PageDataMapper(), invoker, invokeObj);
 	}
 
 	/**
 	 * 构造
 	 * 
-	 * @param elementClazz 符合JavaBean规范的类
+	 * @param elementClazz
+	 *            符合JavaBean规范的类
+	 * @param invoker
+	 * @param invokeObj
+	 */
+	public RemoteResultPage(Class<? extends E> elementClazz, ServiceInvoker invoker, RequestInvokeObject invokeObj) {
+		this(new PageDataMapper(elementClazz), invoker, invokeObj);
+	}
+
+	/**
+	 * 构造
+	 * 
+	 * @param elementClazz
+	 *            符合JavaBean规范的类
 	 * @param invoker
 	 * @param method
 	 * @param params
 	 */
 	public RemoteResultPage(Class<? extends E> elementClazz, ServiceInvoker invoker, String method,
 			RequestInvokeParam... params) {
-		this(new PageDataMapper(elementClazz), DEFAULT_PAGE, DEFAULT_PAGE_SIZE, invoker, method, params);
+		this(new PageDataMapper(elementClazz), invoker, method, params);
 	}
 
 	/**
 	 * 构造
 	 * 
-	 * @param elementClazz 符合JavaBean规范的类
-	 * @param page
-	 * @param pageSize
+	 * @param mapper
+	 *            PageData的映射器
 	 * @param invoker
 	 * @param method
 	 * @param params
 	 */
-	public RemoteResultPage(Class<? extends E> elementClazz, int page, int pageSize, ServiceInvoker invoker,
-			String method, RequestInvokeParam... params) {
-		this(new PageDataMapper(elementClazz), page, pageSize, invoker, method, params);
-	}
-
-	// public RemoteResultPage(ObjectMapper<E> elementMapper, ServiceInvoker
-	// invoker, String method,
-	// RequestInvokeParam... params) {
-	// this(new PageDataMapper(elementMapper), DEFAULT_PAGE, DEFAULT_PAGE_SIZE,
-	// invoker, method, params);
-	// }
-
-	// public RemoteResultPage(ObjectMapper<E> elementMapper, int page, int
-	// pageSize, ServiceInvoker invoker,
-	// String method, RequestInvokeParam... params) {
-	// this(new PageDataMapper(elementMapper), page, pageSize, invoker, method,
-	// params);
-	// }
-
 	public RemoteResultPage(PageDataMapper mapper, ServiceInvoker invoker, String method,
-			RequestInvokeParam... params) {
-		this(mapper, DEFAULT_PAGE, DEFAULT_PAGE_SIZE, invoker, method, params);
-	}
-
-	/**
-	 * 构造
-	 * 
-	 * @param mapper   PageData的映射器
-	 * @param page     初始页
-	 * @param pageSize 每页项数
-	 * @param invoker
-	 * @param method
-	 * @param params
-	 */
-	public RemoteResultPage(PageDataMapper mapper, int page, int pageSize, ServiceInvoker invoker, String method,
 			RequestInvokeParam... params) {
 		m_Invoker = invoker;
 		m_InvokeObj = new RequestInvokeObject(method);
 		m_InvokeObj.putParams(params);
 		m_DataMapper = mapper;
+	}
 
-		loadData(page, pageSize);
+	/**
+	 * 构造
+	 * 
+	 * @param mapper
+	 *            PageData的映射器
+	 * @param invoker
+	 * @param invokeObj
+	 */
+	public RemoteResultPage(PageDataMapper mapper, ServiceInvoker invoker, RequestInvokeObject invokeObj) {
+		m_Invoker = invoker;
+		m_InvokeObj = new RequestInvokeObject(invokeObj);
+		m_DataMapper = mapper;
 	}
 
 	// protected void init() {
@@ -143,7 +132,8 @@ public class RemoteResultPage<E> extends AbstractResultPage<E> {
 	// }
 
 	void loadData() {
-		loadData(getPage(), getPageSize());
+		// loadData(getPage(), getPageSize());
+		loadData(m_InvokeObj);
 	}
 
 	void loadData(int page, int pageSize) {
@@ -155,13 +145,18 @@ public class RemoteResultPage<E> extends AbstractResultPage<E> {
 	void loadData(RequestInvokeObject invokeObj) {
 		Response ret;
 		try {
-			ret = m_Invoker.invoke(invokeObj.toDtObject());
+			Request req = m_Invoker.createRequest(invokeObj.toDtObject());
+			if (!StringUtil.isEmpty(m_Tag)) {
+				req.getHeader().setTag(m_Tag);
+			}
+			ret = m_Invoker.invoke(req);
 		} catch (RuntimeException e) {
 			throw onInvokeException(e);
 		}
 		if (0 != ret.getResponseCode()) {
-			throw onGetWayExcepion(ret.getResponseCode(), ret.getResponseMsg());
+			throw onGatewayException(ret.getResponseCode(), ret.getResponseMsg());
 		}
+		m_Tag = ret.getHeader().getTag();
 		DtObject result = ret.getServiceResult();
 		int code = result.getNumber("code").valueInt();
 		if (0 != code) {
@@ -177,25 +172,28 @@ public class RemoteResultPage<E> extends AbstractResultPage<E> {
 		return e;
 	}
 
-	protected RuntimeException onGetWayExcepion(int code, String msg) {
+	protected RuntimeException onGatewayException(int code, String msg) {
 		// 子类重载
-		return new RuntimeException("加载失败：" + code + "/" + msg);
+		return new GatewayException("加载失败，网关响应异常:" + code + "/" + msg, code, msg);
 	}
 
 	protected RuntimeException onServiceException(int code, String msg) {
 		// 子类重载
-		return new RuntimeException("加载失败：" + code + "/" + msg);
+		return new MicroserviceException("加载失败，微服务响应异常:" + code + "/" + msg, code, msg);
 	}
 
 	@Override
 	public int getCount() {
+		if (null == m_Data) {
+			loadData();
+		}
 		return m_Data.getCount();
 	}
 
 	@Override
 	protected E get(int idx) {
 		if (null == m_Data || idx < m_Data.getPos() || idx >= m_Data.getPos() + m_Data.getItemSize()) {
-			loadData();
+			loadData(getPage(), getPageSize());
 		}
 		return m_Data.getItem(idx - m_Data.getPos());
 	}

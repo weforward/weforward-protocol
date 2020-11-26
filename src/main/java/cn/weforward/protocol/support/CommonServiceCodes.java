@@ -32,6 +32,8 @@ public class CommonServiceCodes {
 	public static final StatusCode INSUFFICIENT_PERMISSIONS = new StatusCode(10002, "无权限调用此方法");
 	/** 状态码 - 未登录 */
 	public static final StatusCode NO_LOGIN = new StatusCode(10003, "未登录");
+	/** 状态码 - 需要验证手机 */
+	public static final StatusCode NEED_VERIFY_PHONE = new StatusCode(10004, "需要验证手机");
 	/** 状态码 - 参数不合法 */
 	public static final StatusCode ILLEGAL_ARGUMENT = new StatusCode(20001, "参数不合法");
 	/** 状态码 - 内部错误 */

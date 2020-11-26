@@ -14,6 +14,7 @@ import cn.weforward.common.GcCleanable;
 import cn.weforward.common.sys.GcCleaner;
 import cn.weforward.common.util.LruCache;
 import cn.weforward.common.util.LruCache.CacheNode;
+import cn.weforward.common.util.LruCache.Loader;
 
 /**
  * 值代理对象容器
@@ -76,11 +77,22 @@ public abstract class VoProxyContainer<E, V> implements LruCache.Loader<String, 
 	/**
 	 * 获取对象
 	 * 
-	 * @param key
+	 * @param key 键
 	 * @return 对象
 	 */
 	public E get(String key) {
 		return m_Cache.getHintLoad(key, this);
+	}
+
+	/**
+	 * 获取对象
+	 * 
+	 * @param key 键
+	 * @param vo  对象的vo值，不为null则直接用此vo过期后再从远端获取，为null则直接从远端获取vo
+	 * @return 对象
+	 */
+	public E get(String key, V vo) {
+		return m_Cache.getHintLoad(key, new FastLoader(vo));
 	}
 
 	@Override
@@ -161,4 +173,23 @@ public abstract class VoProxyContainer<E, V> implements LruCache.Loader<String, 
 	 * @return 值对象
 	 */
 	protected abstract V load(String key, V old);
+
+	class FastLoader implements Loader<String, E> {
+		V m_Vo;
+
+		public FastLoader(V vo) {
+			m_Vo = vo;
+		}
+
+		@Override
+		public E load(String key, CacheNode<String, E> node) {
+			VoProxy<V> proxyVo = VoProxyFactory.create(key, m_Expiry, VoProxyContainer.this);
+			proxyVo.updateVo(m_Vo);
+			if (null == proxyVo.getVo()) {
+				return null;
+			}
+			return create(key, proxyVo);
+		}
+
+	};
 }

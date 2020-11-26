@@ -10,6 +10,7 @@
  */
 package cn.weforward.protocol.gateway;
 
+import cn.weforward.common.ResultPage;
 import cn.weforward.protocol.Service;
 import cn.weforward.protocol.ext.ServiceRuntime;
 import cn.weforward.protocol.gateway.exception.ServiceRegisterException;
@@ -45,4 +46,13 @@ public interface ServiceRegister {
 	 *            微服务信息
 	 */
 	void unregisterService(Service service) throws ServiceRegisterException;
+
+	/**
+	 * 查找微服务名称
+	 * 
+	 * @param keyword
+	 *            名称关键字，支持通配符'*'，如：*_order,*.pay,us*er
+	 * @return 符合条件的微服务名称列表
+	 */
+	ResultPage<String> listServiceName(String keyword);
 }
