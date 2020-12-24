@@ -24,6 +24,7 @@ import cn.weforward.protocol.doc.DocAttribute;
 import cn.weforward.protocol.doc.DocMethod;
 import cn.weforward.protocol.exception.ObjectMappingException;
 import cn.weforward.protocol.ext.ObjectMapper;
+import cn.weforward.protocol.support.datatype.FriendlyList;
 import cn.weforward.protocol.support.datatype.SimpleDtList;
 import cn.weforward.protocol.support.datatype.SimpleDtObject;
 
@@ -50,8 +51,11 @@ public class DocMethodVo implements DocMethod, Comparable<DocMethodVo> {
 	/** {@link DocMethod#getReturns()} */
 	@Resource
 	public List<DocAttributeVo> returns;
-	/** 位置 */
+	/** 再方法列表中的位置 */
 	public int index;
+	/** {@link #getAccessKinds()} */
+	@Resource
+	public List<String> accessKinds;
 
 	public static final ObjectMapper<DocMethodVo> MAPPER = new ObjectMapper<DocMethodVo>() {
 
@@ -66,6 +70,7 @@ public class DocMethodVo implements DocMethod, Comparable<DocMethodVo> {
 			obj.put("description", method.description);
 			obj.put("params", SimpleDtList.toDtList(method.params, DocAttributeVo.MAPPER));
 			obj.put("returns", SimpleDtList.toDtList(method.returns, DocAttributeVo.MAPPER));
+			obj.put("access_kinds", SimpleDtList.stringOf(method.accessKinds));
 			return obj;
 		}
 
@@ -75,30 +80,34 @@ public class DocMethodVo implements DocMethod, Comparable<DocMethodVo> {
 		}
 
 		@Override
-		public DocMethodVo fromDtObject(DtObject hyObject) throws ObjectMappingException {
-			if (null == hyObject) {
+		public DocMethodVo fromDtObject(DtObject dtObject) throws ObjectMappingException {
+			if (null == dtObject) {
 				return null;
 			}
 			DocMethodVo method = new DocMethodVo();
-			DtString name = hyObject.getString("name");
+			DtString name = dtObject.getString("name");
 			if (null != name) {
 				method.name = name.value();
 			}
-			DtString title = hyObject.getString("title");
+			DtString title = dtObject.getString("title");
 			if (null != title) {
 				method.title = title.value();
 			}
-			DtString description = hyObject.getString("description");
+			DtString description = dtObject.getString("description");
 			if (null != description) {
 				method.description = description.value();
 			}
-			DtList params = hyObject.getList("params");
+			DtList params = dtObject.getList("params");
 			if (null != params) {
-				method.params = SimpleDtList.fromDtList(params, DocAttributeVo.MAPPER);
+				method.params = FriendlyList.toList(params, DocAttributeVo.MAPPER);
 			}
-			DtList returns = hyObject.getList("returns");
+			DtList returns = dtObject.getList("returns");
 			if (null != returns) {
-				method.returns = SimpleDtList.fromDtList(returns, DocAttributeVo.MAPPER);
+				method.returns = FriendlyList.toList(returns, DocAttributeVo.MAPPER);
+			}
+			DtList accessKinds = dtObject.getList("access_kinds");
+			if (null != accessKinds) {
+				method.accessKinds = FriendlyList.toStringList(accessKinds);
 			}
 			return method;
 		}
@@ -114,6 +123,7 @@ public class DocMethodVo implements DocMethod, Comparable<DocMethodVo> {
 		this.description = method.getDescription();
 		this.params = DocAttributeVo.toVoList(method.getParams());
 		this.returns = DocAttributeVo.toVoList(method.getReturns());
+		this.accessKinds = method.getAccessKinds();
 	}
 
 	public static DocMethodVo valueOf(DocMethod method) {
@@ -192,5 +202,10 @@ public class DocMethodVo implements DocMethod, Comparable<DocMethodVo> {
 			return 0;
 		}
 		return goupsoff;
+	}
+
+	@Override
+	public List<String> getAccessKinds() {
+		return accessKinds;
 	}
 }

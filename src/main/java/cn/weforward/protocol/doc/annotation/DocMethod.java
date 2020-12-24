@@ -45,4 +45,9 @@ public @interface DocMethod {
 	 * 方法序号
 	 */
 	int index() default 0;
+
+	/**
+	 * 允许访问此方法的凭证种类（access kind）
+	 */
+	String[] accessKinds() default {};
 }

@@ -57,6 +57,15 @@ Weforward Protocol 定义了一套微服务的协议标准
 
 == ·基于Http(s)的微服务调用
 
+=== ··链接
+
+格式：http://{gateway_host}:{gateway_post}/{service_name}
+
+	说明：
+	gateway_host：网关域名或IP地址
+	gateway_post：网关端口
+	service_name：微服务名称
+
 === ··协议头
 
 Content-Type：内容格式与编码。取值：application/json;charset=utf-8
@@ -64,6 +73,7 @@ Content-Type：内容格式与编码。取值：application/json;charset=utf-8
 WF-Noise：长度为16，包含小写字母与数字，且不重复的字串
 
 WF-Content-Sign：POST内容体的SHA256签名的base64字串
+
 	生成过程：
 	a)Charset(POST内容体)，使用协议头声明编码方式对POST内容体编码，得到编码后的字节数组post_data；
 	b)SHA256(post_data)，得到post_sign；
@@ -72,10 +82,12 @@ WF-Content-Sign：POST内容体的SHA256签名的base64字串
 
 WF-Tag：表示处理当前请求的微服务实例标识，下次请求带上此标识，网关将优先使用此标识对应的实例
 
-WF-Channel：信道类型。取值：rpc、stream、notify
+WF-Channel：信道类型。取值：rpc、stream、notify、topic
+
 * rpc：远程过程调用。
 * stream：数据流。在此信道下，直接传输原始数据内容，用于上传、下载文件的场景。
-* notify：通知。支持单点与广播模式，与‘rpc’不同的是，当通知请求抵达微服务实例时，网关将立即响应调用端，不等待微服务端处理
+* notify：通知。支持单点与广播模式，与 `rpc` 不同的是，当通知请求抵达微服务实例时，网关将立即响应调用端，不等待微服务端处理。
+* topic：主题消息广播。代替MQ的订阅，与邮件列表（mailing list）类似，订阅方不需要与MQ建立通讯。请求格式与 `rpc` 有所差别，<<channel_topic,详见下文>>。
 
 WF-Secure：标识通信链路是否安全，取值：on/off。Weforward保留，无需调用端传递。
 
@@ -108,7 +120,7 @@ Authorization：验证类型。取值：WF-None、WF-SHA2、WF-AES。
 
 === ··请求体
 
-格式。需要保证‘wf_req’为第一个节点
+格式。需要保证`wf_req`为第一个节点
 
 [source,json]
 ----
@@ -209,7 +221,7 @@ wf_req标识表。 +
 
 === ··响应体
 
-格式。需要保证‘wf_resp’为第一个节点
+格式。需要保证`wf_resp`为第一个节点
 
 [source,json]
 ----
@@ -344,6 +356,9 @@ wf_code表
 |5007
 |微服务调用栈过深
 
+|5008
+|微服务连接失败
+
 |9001
 |内部错误
 
@@ -369,6 +384,51 @@ wf_resp标识表。 +
 |指示网关清除调用方所持有的微服务实例标识
 
 |===
+
+[[channel_topic]]
+=== ··topic信道
+
+链接格式：http://{gateway_host}:{gateway_post}/{service_name1};{service_name2}
+
+	说明：
+	使用英文半角分号“;”拼接多个微服务名
+
+请求体中，`method` 固定为 `topic` ，`params.id` 为消息标识， `params.topic` 为消息主题， `params.tag` 为消息标签， `params.deliver` 为投递此消息的服务名，`params.content` 为消息内容
+
+[source,json]
+----
+{
+	"wf_req": {
+		"ver":"1.0",
+		"res_id":"File$abc123",
+		"trace_token":"1234567890abcdef",
+		"wait_timeout":60
+	},
+	"invoke": {
+		"method": "topic"
+		"params": {
+			"id": "1",
+			"topic": "order_status",
+			"tag": "success",
+			"deliver": "weforward_mq",
+			"content":{}
+		}
+	}
+}
+----
+
+响应体无 `result` 节点
+
+[source,json]
+----
+{
+	"wf_resp": {
+		"wf_code": 0,
+		"wf_msg": "",
+		"res_url":"https://xxxx/"
+	}
+}
+----
 
 === ··Proxy客户端使用
 
@@ -492,11 +552,11 @@ image::adoc/upload.png[]
 
 1.客户端调用微服务的“open_picture”（名称由微服务自定义）方法； +
 2.微服务端收到调用； +
-3.微服务端开辟一个图片资源存储空间，并返回资源标识`res_id`，资源过期时间`res_expire`（客户端需要在过期之前上传）； +
-4.客户端收到`res_url`； +
-5.客户端构建表单（Content-Type:multipart/form-data），上传文件到`res_url`； +
+3.微服务端开辟一个图片资源存储空间，并返回资源标识 `res_id` ，资源过期时间 `res_expire` （客户端需要在过期之前上传）； +
+4.客户端收到 `res_url` ； +
+5.客户端构建表单（Content-Type:multipart/form-data），上传文件到 `res_url` ； +
 6.网关对微服务发起http请求，链接如：http://service_host:service_port/service_name?id=res_id ，请求头包含"WF-Channel":"stream"、"Content-Type":"multipart/form-data"； +
-7.微服务端根据`res_id`保存上传内容，并返回http状态码200； +
+7.微服务端根据 `res_id` 保存上传内容，并返回http状态码200； +
 8.网关返回http状态码200
 
 *下载过程：* +
@@ -504,10 +564,10 @@ image::adoc/download.png[]
 
 1.客户端调用微服务的“get_picture”（名称由微服务自定义）方法； +
 2.微服务端收到调用； +
-3.微服务端找到图片资源，并返回资源标识`res_id`，资源过期时间`res_expire`（客户端需要在过期之前下载）； +
-4.客户端收到`res_url`； +
-5.客户端使用GET方式，请求`res_url`； +
+3.微服务端找到图片资源，并返回资源标识 `res_id` ，资源过期时间 `res_expire` （客户端需要在过期之前下载）； +
+4.客户端收到 `res_url` ； +
+5.客户端使用GET方式，请求 `res_url` ； +
 6.网关对微服务发起http请求，链接如：http://service_host:service_port/service_name?id=res_id ； +
-7.微服务端根据`res_id`找到图片资源，按资源实际内容构建content-type，响应200状态，并输出资源内容； +
+7.微服务端根据 `res_id` 找到图片资源，按资源实际内容构建content-type，响应200状态，并输出资源内容； +
 8.网关返回资源内容给客户端
 

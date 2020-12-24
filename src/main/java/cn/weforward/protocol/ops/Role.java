@@ -8,50 +8,27 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  */
-package cn.weforward.protocol.doc;
-
-import java.util.List;
-
-import cn.weforward.protocol.Access;
+package cn.weforward.protocol.ops;
 
 /**
- * 微服务文档的方法
+ * 角色
  * 
  * @author zhangpengji
  *
  */
-public interface DocMethod {
+public interface Role {
 
 	/**
-	 * 方法名
+	 * 角色标识
+	 * 
+	 * @return
+	 */
+	int getId();
+
+	/**
+	 * 角色名称
+	 * 
+	 * @return
 	 */
 	String getName();
-
-	/**
-	 * 方法标题
-	 */
-	String getTitle();
-
-	/**
-	 * 方法说明
-	 */
-	String getDescription();
-
-	/**
-	 * 参数
-	 */
-	List<DocAttribute> getParams();
-
-	/**
-	 * 返回值
-	 */
-	List<DocAttribute> getReturns();
-
-	/**
-	 * 允许访问此方法的凭证种类（access kind）。返回空表示不限制
-	 * 
-	 * @see Access#KIND_SERVICE
-	 * @see Access#KIND_USER
-	 */
-	List<String> getAccessKinds();
 }

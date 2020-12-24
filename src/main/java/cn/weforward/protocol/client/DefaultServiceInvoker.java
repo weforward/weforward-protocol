@@ -14,8 +14,8 @@ import java.util.List;
 
 import cn.weforward.protocol.Request;
 import cn.weforward.protocol.Response;
-import cn.weforward.protocol.client.execption.HttpTransportException;
 import cn.weforward.protocol.client.execption.ServiceInvokeException;
+import cn.weforward.protocol.client.execption.TransportException;
 
 /**
  * 默认的服务调用器实现。<br/>
@@ -123,8 +123,8 @@ public class DefaultServiceInvoker extends AbstractServiceInvoker {
 			} catch (ServiceInvokeException e) {
 				err = e;
 				Throwable cause = e.getCause();
-				if (cause instanceof HttpTransportException
-						&& ((HttpTransportException) cause).isType(HttpTransportException.TYPE_ERROR_READ_TIMEOUT)) {
+				if (cause instanceof TransportException
+						&& ((TransportException) cause).isType(TransportException.TYPE_ERROR_READ_TIMEOUT)) {
 					break;
 				}
 			}

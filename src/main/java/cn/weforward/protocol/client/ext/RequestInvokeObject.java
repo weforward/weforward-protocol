@@ -202,7 +202,7 @@ public class RequestInvokeObject {// implements DtObject
 	 * 
 	 * @param obj
 	 */
-	public void putParams(Object obj) {
+	public void asParams(Object obj) {
 		if (null == obj) {
 			return;
 		}

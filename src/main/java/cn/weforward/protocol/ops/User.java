@@ -35,4 +35,9 @@ public interface User {
 	 * 根据list的顺序匹配，当匹配时忽略后面的权限。
 	 */
 	List<Right> getRight();
+
+	/**
+	 * 所属角色
+	 */
+	List<Role> getRoles();
 }

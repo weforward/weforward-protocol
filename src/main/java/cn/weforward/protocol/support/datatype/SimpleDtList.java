@@ -68,6 +68,9 @@ public class SimpleDtList extends AbstractDtList implements DtList, Iterable<DtB
 	}
 
 	static int getSize(Iterable<?> it) {
+		if(null == it) {
+			return 0;
+		}
 		if (it instanceof Collection) {
 			return ((Collection<?>) it).size();
 		}
