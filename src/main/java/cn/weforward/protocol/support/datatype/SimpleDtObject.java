@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 
 import cn.weforward.common.KvPair;
 import cn.weforward.protocol.datatype.DtBase;
+import cn.weforward.protocol.datatype.DtObject;
 import cn.weforward.protocol.support.NamingConverter;
 
 /**
@@ -161,6 +162,25 @@ public class SimpleDtObject extends AbstractDtObject implements Iterable<KvPair<
 	@Override
 	public int getAttributeSize() {
 		return m_Map.size();
+	}
+
+	/**
+	 * 置入<code>obj</code>的全部属性
+	 * 
+	 * @param obj
+	 */
+	public void putAll(DtObject obj) {
+		if(null == obj) {
+			return;
+		}
+		Enumeration<KvPair<String, DtBase>> dtObjAtts = obj.getAttributes();
+		while (dtObjAtts.hasMoreElements()) {
+			KvPair<String, DtBase> att = dtObjAtts.nextElement();
+			if (null == att.getValue()) {
+				continue;
+			}
+			put(att.getKey(), att.getValue());
+		}
 	}
 
 	/**

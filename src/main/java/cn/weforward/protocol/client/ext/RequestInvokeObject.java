@@ -206,20 +206,18 @@ public class RequestInvokeObject {// implements DtObject
 		if (null == obj) {
 			return;
 		}
-		@SuppressWarnings("unchecked")
-		ObjectMapper<Object> mapper = getMapper((Class<Object>) obj.getClass());
-		if (null == mapper) {
-			throw new ObjectMappingException("不支持映射此对象：" + obj);
-		}
-		DtObject dtObj = mapper.toDtObject(obj);
-		Enumeration<KvPair<String, DtBase>> dtObjAtts = dtObj.getAttributes();
-		while (dtObjAtts.hasMoreElements()) {
-			KvPair<String, DtBase> att = dtObjAtts.nextElement();
-			if (null == att.getValue()) {
-				continue;
+		DtObject dtObj;
+		if (obj instanceof DtObject) {
+			dtObj = (DtObject) obj;
+		} else {
+			@SuppressWarnings("unchecked")
+			ObjectMapper<Object> mapper = getMapper((Class<Object>) obj.getClass());
+			if (null == mapper) {
+				throw new ObjectMappingException("不支持映射此对象：" + obj);
 			}
-			putParam(att.getKey(), att.getValue());
+			dtObj = mapper.toDtObject(obj);
 		}
+		getParams().putAll(dtObj);
 
 	}
 

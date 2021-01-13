@@ -166,6 +166,9 @@ public class SimpleFriendlyServiceInvoker implements FriendlyServiceInvoker {
 		if (e instanceof ResponseAware) {
 			((ResponseAware) e).onResponse(response);
 		}
+		if(null != option && null != option.getResponseAware()) {
+			option.getResponseAware().onResponse(response);
+		}
 		return e;
 	}
 

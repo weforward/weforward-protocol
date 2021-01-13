@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import cn.weforward.common.io.CachedInputStream;
-import cn.weforward.common.util.NumberUtil;
 import cn.weforward.common.util.StringUtil;
 import cn.weforward.protocol.Header;
 import cn.weforward.protocol.Request;
@@ -26,7 +24,6 @@ import cn.weforward.protocol.aio.netty.NettyHttpClient;
 import cn.weforward.protocol.aio.netty.NettyHttpClientFactory;
 import cn.weforward.protocol.client.AbstractServiceInvoker;
 import cn.weforward.protocol.client.AioServiceInvoker;
-import cn.weforward.protocol.client.execption.HttpTransportException;
 import cn.weforward.protocol.client.execption.ServiceInvokeException;
 import cn.weforward.protocol.exception.AuthException;
 import cn.weforward.protocol.exception.SerialException;
@@ -54,7 +51,7 @@ public class NettyServiceInvoker extends AbstractServiceInvoker implements AioSe
 
 	protected Producer m_Producer;
 
-	public NettyServiceInvoker(String preUrl, String serviceName) {
+	public NettyServiceInvoker(String preUrl, String serviceName, Producer producer) {
 		if (StringUtil.isEmpty(preUrl) || StringUtil.isEmpty(serviceName)) {
 			throw new IllegalArgumentException("链接与服务名不能为空");
 		}
@@ -68,6 +65,7 @@ public class NettyServiceInvoker extends AbstractServiceInvoker implements AioSe
 		}
 		m_ServiceUrl = url;
 		m_ServiceName = serviceName;
+		m_Producer = producer;
 	}
 
 	public void setProducer(Producer producer) {
@@ -145,10 +143,11 @@ public class NettyServiceInvoker extends AbstractServiceInvoker implements AioSe
 			out.close();
 			int responseCode = client.getResponseCode();
 			if (200 != responseCode) {
-				int expect = NumberUtil.toInt(client.getResponseHeaders().get(HttpConstants.CONTENT_LENGTH), 0);
-				int limit = 1024;
-				String msg = CachedInputStream.readString(client.getResponseStream(), expect, limit, m_Charset);
-				throw new HttpTransportException(responseCode, msg);
+//				int expect = NumberUtil.toInt(client.getResponseHeaders().get(HttpConstants.CONTENT_LENGTH), 0);
+//				int limit = 1024;
+//				String msg = CachedInputStream.readString(client.getResponseStream(), expect, limit, m_Charset);
+//				throw new HttpTransportException(responseCode, msg);
+				throw new ServiceInvokeException("响应异常:" + responseCode);
 			}
 			String service = request.getHeader().getService();
 			InputStream in = client.getResponseStream();
@@ -156,11 +155,11 @@ public class NettyServiceInvoker extends AbstractServiceInvoker implements AioSe
 			in.close();
 			return res;
 		} catch (AuthException e) {
-			throw new ServiceInvokeException(e);
+			throw new ServiceInvokeException("验证异常", e);
 		} catch (SerialException e) {
-			throw new ServiceInvokeException(e);
+			throw new ServiceInvokeException("序列化异常", e);
 		} catch (IOException e) {
-			throw new ServiceInvokeException(e);
+			throw new ServiceInvokeException("IO异常", e);
 		} finally {
 			if (null != client) {
 				client.close();

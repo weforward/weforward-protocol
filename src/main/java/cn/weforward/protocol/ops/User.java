@@ -33,8 +33,16 @@ public interface User {
 	/**
 	 * 所有权限。<br/>
 	 * 根据list的顺序匹配，当匹配时忽略后面的权限。
+	 * 
+	 * @deprecated 请使用{@linkplain #getRights()}
 	 */
 	List<Right> getRight();
+
+	/**
+	 * 所有权限。<br/>
+	 * 根据list的顺序匹配，当匹配时忽略后面的权限。
+	 */
+	List<Right> getRights();
 
 	/**
 	 * 所属角色

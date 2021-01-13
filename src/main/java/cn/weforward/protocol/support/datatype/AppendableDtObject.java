@@ -16,7 +16,7 @@ import cn.weforward.protocol.datatype.DtBase;
 import cn.weforward.protocol.datatype.DtObject;
 
 /**
- * 封装DtObject，允许追加成员属性
+ * 封装DtObject，允许追加成员属性。不会当属性名称相同时，不会覆盖原属性
  * 
  * @author zhangpengji
  *

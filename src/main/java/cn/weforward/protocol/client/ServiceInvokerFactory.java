@@ -17,6 +17,7 @@ import java.util.List;
 
 import cn.weforward.common.util.StringUtil;
 import cn.weforward.protocol.AccessLoader;
+import cn.weforward.protocol.client.netty.NettyServiceInvoker;
 import cn.weforward.protocol.ext.Producer;
 import cn.weforward.protocol.support.SimpleProducer;
 
@@ -27,6 +28,8 @@ import cn.weforward.protocol.support.SimpleProducer;
  *
  */
 public class ServiceInvokerFactory {
+
+	private static final String INVOKER = System.getProperty("cn.weforward.protocol.client.invoker", "");
 
 	/**
 	 * 根据Http前缀链接与服务名创建调用器
@@ -109,10 +112,11 @@ public class ServiceInvokerFactory {
 	}
 
 	protected static AbstractServiceInvoker createInvoker(String url, String serviceName, Producer producer) {
-		SingleServiceInvoker invoker = new SingleServiceInvoker(url, serviceName);
-		// TODO 使用Netty
-		// NettyServiceInvoker invoker = new NettyServiceInvoker(url, serviceName);
-		invoker.setProducer(producer);
-		return invoker;
+		if ("netty".contentEquals(INVOKER)) {
+			return new NettyServiceInvoker(url, serviceName, producer);
+		} else {
+			return new SingleServiceInvoker(url, serviceName, producer);
+		}
+
 	}
 }

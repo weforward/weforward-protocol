@@ -15,6 +15,8 @@ import cn.weforward.common.sys.GcCleaner;
 import cn.weforward.common.util.LruCache;
 import cn.weforward.common.util.LruCache.CacheNode;
 import cn.weforward.common.util.LruCache.Loader;
+import cn.weforward.protocol.client.proxy.VoProxy.LoadResult;
+import cn.weforward.protocol.client.proxy.VoProxy.ServiceInfo;
 
 /**
  * 值代理对象容器
@@ -94,10 +96,10 @@ public abstract class VoProxyContainer<E, V> implements LruCache.Loader<String, 
 	public E get(String key, V vo) {
 		return m_Cache.getHintLoad(key, new FastLoader(vo));
 	}
-
+	
 	@Override
-	public V loadVo(String key, V old) {
-		return load(key, old);
+	public LoadResult<V> loadVo(String key, V old, ServiceInfo info) {
+		return load(key, old, info);
 	}
 
 	/**
@@ -173,6 +175,22 @@ public abstract class VoProxyContainer<E, V> implements LruCache.Loader<String, 
 	 * @return 值对象
 	 */
 	protected abstract V load(String key, V old);
+	
+	/**
+	 * 加载vo
+	 * @param key
+	 * @param old
+	 * @param info
+	 * @return
+	 */
+	protected LoadResult<V> load(String key, V old, ServiceInfo info){
+		V vo = load(key, old);
+		return new LoadResult<>(vo);
+	}
+	
+	protected VoProxy<V> createVoProxy(String key){
+		return VoProxyFactory.create(key, m_Expiry, VoProxyContainer.this);
+	}
 
 	class FastLoader implements Loader<String, E> {
 		V m_Vo;
@@ -183,8 +201,8 @@ public abstract class VoProxyContainer<E, V> implements LruCache.Loader<String, 
 
 		@Override
 		public E load(String key, CacheNode<String, E> node) {
-			VoProxy<V> proxyVo = VoProxyFactory.create(key, m_Expiry, VoProxyContainer.this);
-			proxyVo.updateVo(m_Vo);
+			VoProxy<V> proxyVo = createVoProxy(key);
+			proxyVo.updateVo(m_Vo, null);
 			if (null == proxyVo.getVo()) {
 				return null;
 			}

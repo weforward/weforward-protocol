@@ -21,6 +21,7 @@ import cn.weforward.common.ResultPage;
 import cn.weforward.common.util.ResultPageHelper;
 import cn.weforward.common.util.StringUtil;
 import cn.weforward.protocol.Header;
+import cn.weforward.protocol.gateway.ServiceSummary;
 import cn.weforward.protocol.gateway.http.HttpKeeper;
 import cn.weforward.protocol.gateway.vo.RightTableItemVo;
 import cn.weforward.protocol.gateway.vo.RightTableItemWrap;
@@ -79,6 +80,8 @@ public class TempKeeper {
 					tmp.listService();
 				} else if ("names".equals(arr[1])) {
 					tmp.listServiceName(arr.length > 2 ? arr[2] : null);
+				} else if ("summary".equals(arr[1])) {
+					tmp.listServiceSummary(arr.length > 2 ? arr[2] : null);
 				}
 			} else if (cmd.startsWith("rt ")) {
 				String[] arr = cmd.split(" ");
@@ -202,6 +205,19 @@ public class TempKeeper {
 		while (rp.gotoPage(page++)) {
 			for (String name : rp) {
 				System.out.println(name);
+			}
+		}
+	}
+
+	public void listServiceSummary(String keyword) {
+		ResultPage<ServiceSummary> rp = keeper.listServiceSummary(keyword);
+		rp.setPageSize(100);
+		rp.gotoPage(1);
+		System.out.println("service list:");
+		int page = 1;
+		while (rp.gotoPage(page++)) {
+			for (ServiceSummary sum : rp) {
+				System.out.println(sum.getName()+","+sum.getStatus()+","+sum.getSummary());
 			}
 		}
 	}

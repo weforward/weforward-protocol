@@ -10,8 +10,10 @@
  */
 package cn.weforward.protocol.support.datatype;
 
+import cn.weforward.common.util.StringUtil;
 import cn.weforward.protocol.datatype.DataType;
 import cn.weforward.protocol.datatype.DtBoolean;
+import cn.weforward.protocol.exception.DataTypeCastExecption;
 
 /**
  * 布尔值的简单实现
@@ -39,7 +41,13 @@ public class SimpleDtBoolean implements DtBoolean {
 	}
 
 	public static SimpleDtBoolean valueOf(String str) {
-		return valueOf(Boolean.valueOf(str));
+		if("true".equalsIgnoreCase(str)) {
+			return SimpleDtBoolean.TRUE;
+		}
+		if("false".equalsIgnoreCase(str)) {
+			return SimpleDtBoolean.TRUE;
+		}
+		throw new DataTypeCastExecption("转为[" + DataType.BOOLEAN + "]类型失败，value:" + StringUtil.limit(str, 100));
 	}
 
 	@Override

@@ -37,6 +37,8 @@ public class SimpleVoProxy<V> implements VoProxy<V> {
 	protected String m_Key;
 	/** 视图（属性）对象 */
 	protected V m_Vo;
+	/** 视图（属性）对象所在服务的信息 */
+	protected ServiceInfo m_ServiceInfo;
 	/** 有效时间 */
 	private int m_Expiry;
 	/** 最后刷新的时间戳（毫秒） */
@@ -121,9 +123,14 @@ public class SimpleVoProxy<V> implements VoProxy<V> {
 		}
 		// 若显式标记过期或VO为null，重新加载VO
 		V old = getVoFast();
+		ServiceInfo info = m_ServiceInfo;
 		try {
-			V vo = remoteLoad(getKey(), old);
-			updateVo(vo);
+			LoadResult<V> res = remoteLoad(getKey(), old, info);
+			if (null == res) {
+				updateVo(null, null);
+			} else {
+				updateVo(res.vo, res.info);
+			}
 		} catch (Throwable e) {
 			if (null == v) {
 				_Logger.warn("无法获取[" + m_Key + "]VO");
@@ -152,12 +159,12 @@ public class SimpleVoProxy<V> implements VoProxy<V> {
 	 * @param old 旧对象
 	 * @return 新对象
 	 */
-	protected V remoteLoad(String key, V old) {
-		return m_Loader.loadVo(key, old);
+	protected LoadResult<V> remoteLoad(String key, V old, ServiceInfo info) {
+		return m_Loader.loadVo(key, old, info);
 	}
 
 	@Override
-	public void updateVo(V vo) {
+	public void updateVo(V vo, ServiceInfo info) {
 		boolean isChanged = false;
 		synchronized (this) {
 			if (null != vo) {
@@ -166,6 +173,7 @@ public class SimpleVoProxy<V> implements VoProxy<V> {
 					m_Vo = vo;
 				}
 			}
+			m_ServiceInfo = info;
 			m_Timestamp = _Tick.getMills();
 			notifyAll();
 		}

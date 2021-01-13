@@ -336,4 +336,13 @@ public interface Keeper {
 	 */
 	DtObject debugService(String serviceName, String serviceNo, String scriptSource, String scriptName,
 			String scriptArgs) throws KeeperException;
+
+	/**
+	 * 列举微服务的概要信息
+	 * 
+	 * @param keyword
+	 *            名称关键字，支持通配符'*'，如：*_order,*.pay,us*er
+	 * @return 微服务概要信息
+	 */
+	ResultPage<ServiceSummary> listServiceSummary(String keyword);
 }

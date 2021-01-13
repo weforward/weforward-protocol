@@ -160,6 +160,15 @@ public class MappedUtil {
 		} else if (Boolean.class.isAssignableFrom(clazz) || boolean.class.isAssignableFrom(clazz)) {
 			if (params instanceof DtBoolean) {
 				return ((DtBoolean) params).value();
+			} else if (params instanceof DtString) {
+				String str = ((DtString) params).value();
+				if ("true".equalsIgnoreCase(str)) {
+					return Boolean.TRUE;
+				}
+				if ("false".equalsIgnoreCase(str)) {
+					return Boolean.FALSE;
+				}
+				throw new UnsupportedOperationException("无法将[" + params + "]转为Boolean/boolean，必须是'false'或'true'");
 			} else {
 				throw new UnsupportedOperationException("不支持的类型转换:" + params + "=>" + clazz);
 			}

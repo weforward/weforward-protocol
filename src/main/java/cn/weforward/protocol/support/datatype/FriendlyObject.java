@@ -49,7 +49,8 @@ public class FriendlyObject {
 	 * 构造
 	 * 
 	 * @param obj
-	 * @param suppress 是否压制（不抛出）DataTypeCastExecption
+	 * @param suppress
+	 *            是否压制（不抛出）DataTypeCastExecption
 	 */
 	public FriendlyObject(DtObject obj, boolean suppress) {
 		m_Object = obj;
@@ -444,8 +445,23 @@ public class FriendlyObject {
 		return mapper.fromDtObject(object);
 	}
 
+	/**
+	 * 对象是否为空
+	 * 
+	 * @return
+	 */
 	public boolean isNull() {
 		return null == m_Object;
+	}
+
+	/**
+	 * 是否存在此属性
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public boolean isAttributeExisted(String name) {
+		return null != m_Object.getAttribute(name);
 	}
 
 	public FriendlyObject getFriendlyObject(String name) {

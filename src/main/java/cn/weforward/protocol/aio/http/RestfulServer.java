@@ -345,7 +345,7 @@ public class RestfulServer implements ServerHandlerFactory {
 			this.m_Context = ctx;
 		}
 
-		protected void exception(Exception e) {
+		protected void exception(Throwable e) {
 			if (e instanceof ResponseEndException) {
 				// 略过
 				_Logger.error(String.valueOf(e), e);
@@ -449,7 +449,7 @@ public class RestfulServer implements ServerHandlerFactory {
 		public void run() {
 			try {
 				m_Service.service(openRequest(), openResponse());
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				exception(e);
 			}
 		}

@@ -243,32 +243,6 @@ public class NettyHttpServer {
 		}
 	}
 
-	// @Override
-	// public boolean destroySignal() {
-	// Channel channel = m_Channel;
-	// if (null == channel) {
-	// return false;
-	// }
-	// channel.close();
-	// return true;
-	// }
-	//
-	// @Override
-	// public void destroy() {
-	// stop();
-	// }
-	//
-	// public void stop() {
-	// close();
-	// // 停掉业务线程池
-	// Executor tp = m_Executor;
-	// if (tp instanceof ThreadPool) {
-	// _Logger.info("shutdown thread pool...");
-	// m_Executor = null;
-	// ((ThreadPool) tp).shutdown();
-	// }
-	// }
-
 	public boolean close() {
 		Channel channel = m_Channel;
 		if (null == channel) {
@@ -382,7 +356,7 @@ public class NettyHttpServer {
 	 *            HTTP服务端上下文
 	 * @return 业务处理器
 	 */
-	protected ServerHandler handle(NettyHttpContext httpContext) throws IOException {
+	public ServerHandler handle(HttpContext httpContext) throws IOException {
 		return m_HandlerFactory.handle(httpContext);
 	}
 

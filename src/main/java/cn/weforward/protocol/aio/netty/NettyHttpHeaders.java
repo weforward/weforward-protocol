@@ -86,4 +86,10 @@ public class NettyHttpHeaders implements HttpHeaders {
 		return m_Headers.size();
 	}
 
+	static public HttpHeaders valueOf(io.netty.handler.codec.http.HttpHeaders headers) {
+		if (headers.size() == 0) {
+			return HttpHeaders._Empty;
+		}
+		return new NettyHttpHeaders(headers);
+	}
 }

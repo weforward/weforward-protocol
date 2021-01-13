@@ -35,7 +35,7 @@ public class SingleServiceInvoker extends AbstractServiceInvoker {
 	protected String m_AccessId;
 	protected Producer m_Producer;
 
-	public SingleServiceInvoker(String preUrl, String serviceName) {
+	public SingleServiceInvoker(String preUrl, String serviceName, Producer producer) {
 		if (StringUtil.isEmpty(preUrl) || StringUtil.isEmpty(serviceName)) {
 			throw new IllegalArgumentException("链接与服务名不能为空");
 		}
@@ -50,6 +50,7 @@ public class SingleServiceInvoker extends AbstractServiceInvoker {
 		HttpTransport transport = new HttpTransport(url);
 		m_Transport = transport;
 		m_ServiceName = serviceName;
+		m_Producer = producer;
 	}
 
 	public String getServiceName() {

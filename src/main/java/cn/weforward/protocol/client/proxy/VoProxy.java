@@ -10,6 +10,9 @@
  */
 package cn.weforward.protocol.client.proxy;
 
+import cn.weforward.protocol.Response;
+import cn.weforward.protocol.client.ResponseAware;
+
 /**
  * 值对象代理
  * 
@@ -30,11 +33,12 @@ public interface VoProxy<V> {
 	V getVo();
 
 	/**
-	 * 获取vo
+	 * 更新vo
 	 * 
 	 * @param vo
+	 * @param info
 	 */
-	void updateVo(V vo);
+	void updateVo(V vo, ServiceInfo info);
 
 	/**
 	 * 强过期(必须重新加载VO)
@@ -57,10 +61,62 @@ public interface VoProxy<V> {
 		/**
 		 * 加载vo
 		 * 
-		 * @param key 主键
-		 * @param old 旧vo
+		 * @param key
+		 *            主键
+		 * @param old
+		 *            旧vo
 		 */
-		V loadVo(String key, V old);
+		LoadResult<V> loadVo(String key, V old, ServiceInfo info);
+	}
+
+	/**
+	 * 视图（属性）对象所在服务的信息
+	 * 
+	 * @author zhangpengji
+	 *
+	 */
+	static class ServiceInfo {
+		/** 标签 */
+		String tag;
+		
+		public ServiceInfo() {
+			
+		}
+		
+		public static ServiceInfo tagOf(String tag) {
+			ServiceInfo info = new ServiceInfo();
+			info.tag = tag;
+			return info;
+		}
+	}
+
+	/**
+	 * 加载结果封装
+	 * 
+	 * @author zhangpengji
+	 *
+	 */
+	static class LoadResult<V> implements ResponseAware {
+		V vo;
+		ServiceInfo info;
+
+		public LoadResult() {
+
+		}
+
+		public LoadResult(V vo) {
+			this.vo = vo;
+		}
+
+		public LoadResult(V vo, ServiceInfo info) {
+			this.vo = vo;
+			this.info = info;
+		}
+
+		@Override
+		public void onResponse(Response response) {
+			this.info = ServiceInfo.tagOf(response.getHeader().getTag());
+		}
 	}
 
 }

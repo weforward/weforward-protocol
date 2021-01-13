@@ -132,6 +132,8 @@ public interface FriendlyServiceInvoker {
 		protected String m_Version;
 		/** 回源标签 */
 		protected String m_Tag;
+		/** 响应发现 */
+		protected ResponseAware m_ResponseAware;
 
 		/**
 		 * 请求等待时间，单位：秒
@@ -185,6 +187,14 @@ public interface FriendlyServiceInvoker {
 		 */
 		public String getTag() {
 			return m_Tag;
+		}
+
+		public ResponseAware getResponseAware() {
+			return m_ResponseAware;
+		}
+
+		public void setResponseAware(ResponseAware responseAware) {
+			m_ResponseAware = responseAware;
 		}
 	}
 }

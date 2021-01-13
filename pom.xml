@@ -1,12 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>cn.weforward</groupId>
 	<artifactId>weforward-protocol</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.1.215014M</version>
 
 	<name>weforward-protocol</name>
 	<url>http://weforward.cn</url>
@@ -50,7 +47,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>weforward-common</artifactId>
-			<version>1.2.1</version>
+			<version>1.2.1.213749</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -77,10 +74,27 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.1</version>
+				<version>3.2.1</version>
 				<configuration>
-					<attach>true</attach>
+					<excludes>
+						<exclude>commons-logging.properties</exclude>
+						<exclude>simplelogger.properties</exclude>
+						<exclude>logback-test.xml</exclude>
+					</excludes>
 				</configuration>
 				<executions>
 					<execution>
@@ -90,6 +104,18 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<excludes>
+						<exclude>commons-logging.properties</exclude>
+						<exclude>simplelogger.properties</exclude>
+						<exclude>logback-test.xml</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -109,33 +135,36 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.5</version>
-				<executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 	<profiles>
 		<profile>
-			<id>main</id>
+			<id>deploy</id>
+			<properties>
+				<maven.javadoc.skip>true</maven.javadoc.skip>
+				<maven.test.skip>true</maven.test.skip>
+				<gpg.skip>true</gpg.skip>
+			</properties>
+			<distributionManagement>
+				<repository>
+					<id>${distribution.repository.id}</id>
+					<name>Release Repository</name>
+					<url>${distribution.repository.url}</url>
+				</repository>
+				<snapshotRepository>
+					<id>${distribution.repository.snapshot.id}</id>
+					<name>Snapshot Repository</name>
+					<url>${distribution.repository.snapshot.url}</url>
+				</snapshotRepository>
+			</distributionManagement>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>cn.weforward</groupId>
 						<artifactId>build-maven-plugin</artifactId>
-						<version>1.1.0</version>
+						<version>1.1.1</version>
 						<configuration>
 							<mainVersion>1.2</mainVersion>
-							<outputDirectory>bin</outputDirectory>
 						</configuration>
 					</plugin>
 				</plugins>

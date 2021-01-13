@@ -88,7 +88,7 @@ public class HttpTransport implements Transport {
 
 		// post不自动重发
 		// System.setProperty("sun.net.http.retryPost", "false");
-		conn.setChunkedStreamingMode(0);
+		// conn.setChunkedStreamingMode(0); 会导致conn.getOutputStream()变得巨慢无比
 
 		conn.setConnectTimeout(m_ConnectTimeout);
 		conn.setReadTimeout(m_ReadTimeout);

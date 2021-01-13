@@ -121,7 +121,9 @@ public class NettyHttpContext implements HttpContext {
 	 * @throws IOException
 	 */
 	protected void readable(ByteBuf data) throws IOException {
-		assert (data.readableBytes() > 0);
+		if (data.readableBytes() == 0) {
+			return;
+		}
 		m_BodyLength += data.readableBytes();
 		calcBsp();
 		if (_Logger.isTraceEnabled()) {

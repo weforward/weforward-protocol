@@ -10,6 +10,7 @@
  */
 package cn.weforward.protocol.aio.http;
 
+import java.util.Collections;
 import java.util.Enumeration;
 
 import cn.weforward.common.Dictionary;
@@ -25,7 +26,8 @@ public interface HttpHeaders extends Dictionary<String, String> {
 	/**
 	 * 取得指定名称的原生（未urldecode）头信息
 	 * 
-	 * @param name 名称
+	 * @param name
+	 *            名称
 	 * @return 相应的值
 	 */
 	public String getHeaderRaw(String name);
@@ -41,4 +43,26 @@ public interface HttpHeaders extends Dictionary<String, String> {
 	 * HTTP头名称列表
 	 */
 	public Enumeration<String> names();
+
+	public final HttpHeaders _Empty = new HttpHeaders() {
+		@Override
+		public String get(String key) {
+			return null;
+		}
+
+		@Override
+		public String getHeaderRaw(String name) {
+			return null;
+		}
+
+		@Override
+		public int size() {
+			return 0;
+		}
+
+		@Override
+		public Enumeration<String> names() {
+			return Collections.emptyEnumeration();
+		}
+	};
 }

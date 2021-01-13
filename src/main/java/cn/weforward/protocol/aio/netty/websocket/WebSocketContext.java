@@ -22,17 +22,21 @@ import org.slf4j.LoggerFactory;
 import cn.weforward.common.crypto.Hex;
 import cn.weforward.common.util.Bytes;
 import cn.weforward.common.util.StringBuilderPool;
+import cn.weforward.protocol.aio.ClientHandler;
+import cn.weforward.protocol.aio.ServerHandler;
 import cn.weforward.protocol.aio.netty.NettyHttpContext;
 import cn.weforward.protocol.aio.netty.NettyHttpServer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 /**
+ * 切换到WebSocket下的处理
  * 
  * @author liangyi
  *
@@ -201,10 +205,33 @@ public class WebSocketContext extends ChannelInboundHandlerAdapter {
 		seqBuf = null;
 		if (wsframe.isFinalFragment()) {
 			// 是最后的帧
-			packetState |= WebSocketInvoke.PACKET_FINAL;
+			packetState |= WebSocketInvoke.PACKET_MARK_FINAL;
 		}
-		WebSocketInvoke invoke = openInvoke(seq);
+		WebSocketInvoke invoke;
+		if (WebSocketInvoke.PACKET_REQUEST == (WebSocketInvoke.PACKET_REQUEST & packetState)) {
+			// 请求
+			invoke = openInvoke(seq);
+			packetState = invoke.readable(payload, packetState);
+			if (WebSocketInvoke.PACKET_MARK_HEADER == (WebSocketInvoke.PACKET_MARK_HEADER
+					& packetState)) {
+				// 请求开始
+				requestHeader(invoke);
+			}
+			return;
+		}
+		// 响应
+		invoke = getInvoke(seq);
+		if (null == invoke) {
+			// 没有对应的请求？
+			_Logger.warn("miss request:" + seq + ",frame:" + wsframe);
+			return;
+		}
 		invoke.readable(payload, packetState);
+		if (WebSocketInvoke.PACKET_MARK_FINAL == (WebSocketInvoke.PACKET_MARK_FINAL
+				& packetState)) {
+			// 响应结束，移除invoke
+			removeInvoke(seq);
+		}
 	}
 
 	synchronized private WebSocketInvoke openInvoke(String seq) {
@@ -218,6 +245,10 @@ public class WebSocketContext extends ChannelInboundHandlerAdapter {
 
 	synchronized protected WebSocketInvoke removeInvoke(String seq) {
 		return m_Multiplex.remove(seq);
+	}
+
+	synchronized protected WebSocketInvoke getInvoke(String seq) {
+		return m_Multiplex.get(seq);
 	}
 
 	public void close() {
@@ -243,6 +274,46 @@ public class WebSocketContext extends ChannelInboundHandlerAdapter {
 		}
 		toString(sb);
 		return sb.toString();
+	}
+
+	/**
+	 * 发起调用请求
+	 * 
+	 * @param handler
+	 * @param url
+	 * @param method
+	 * @return
+	 * @throws IOException
+	 */
+	public WebSocketInvoke request(ClientHandler handler, String url, String method)
+			throws IOException {
+		String seq = genRequestSequence();
+		WebSocketInvoke invoker = openInvoke(seq.substring(1));
+		invoker.openRequest(handler, url, method);
+		return invoker;
+	}
+
+	/**
+	 * 接收到调用请求（请求头已接收完）
+	 * 
+	 * @throws IOException
+	 */
+	private void requestHeader(WebSocketInvoke invoke) throws IOException {
+		ServerHandler handler = null;
+		try {
+			handler = m_Server.handle(invoke.httpContext());
+		} finally {
+			if (null == handler) {
+				if (invoke.isRespond()) {
+					// 已经响应
+					return;
+				}
+				// 没有业务处理，直接返回501，且主动关闭
+				invoke.response(HttpResponseStatus.NOT_IMPLEMENTED);
+				return;
+			}
+		}
+		invoke.request(handler);
 	}
 
 	public StringBuilder toString(StringBuilder sb) {

@@ -30,6 +30,7 @@ import cn.weforward.protocol.datatype.DtObject;
 import cn.weforward.protocol.ext.ObjectMapperSet;
 import cn.weforward.protocol.gateway.Keeper;
 import cn.weforward.protocol.gateway.SearchServiceParams;
+import cn.weforward.protocol.gateway.ServiceSummary;
 import cn.weforward.protocol.gateway.exception.KeeperException;
 import cn.weforward.protocol.gateway.vo.AccessExtVo;
 import cn.weforward.protocol.gateway.vo.AccessExtWrap;
@@ -397,6 +398,13 @@ public class HttpKeeper implements Keeper {
 		Response resp = invoke(invokeObj);
 		FriendlyObject result = checkResponse(resp);
 		return result.getObject("content");
+	}
+
+	@Override
+	public ResultPage<ServiceSummary> listServiceSummary(String keyword) {
+		String method = "list_service_summary";
+		RequestInvokeParam[] params = { RequestInvokeParam.valueOf("keyword", keyword) };
+		return new RemoteResultPage<ServiceSummary>(ServiceSummary.class, getInvoker(), method, params);
 	}
 
 	@Override
